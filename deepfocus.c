@@ -46,6 +46,8 @@
 
 int main(int argc, char *argv[])
 {
+	sprintf(FOCUSFILE, "%s/.deepfocus/focusfile", getenv("HOME"));
+
 	errmsgs[E_INPUT] = "Error receiving CLI input\n";
 	errmsgs[E_STOP] = "No task to stop\n";
 	errmsgs[E_RUNNING] = "Task is already running\n";
@@ -93,14 +95,12 @@ int sessionName(int fd, char namebuffer[])
 		appError(E_ZEROBYTE);
 
 	// TODO: Switch to atomic seek and read.
-	if (lseek(fd, -260, SEEK_END) == -1) {
+	if (lseek(fd, -260, SEEK_END) == -1)
 		sysError("lseek");
-	}
 	if (read(fd, namebuffer, 64) < 0)
 		sysError("read");
-	else {
-		return 0;
-	}
+
+	return 0;
 }
 
 int sessionStatus(int fd, char statusbuffer[])
@@ -123,13 +123,12 @@ int sessionStatus(int fd, char statusbuffer[])
 
 	if (lseek(fd, -64, SEEK_CUR) == -1)
 		sysError("lseek");
-	else
-		return 0;
+
+	return 0;
 }
 
 static int isRunning(int fd)
 {
-	const char *focusfile = "/home/service/.deepfocus/focusfile";
 	struct fsession csession;
 
 	sessionStatus(fd, csession.status);
@@ -141,8 +140,7 @@ static int isRunning(int fd)
 
 static int startTask(char *session)
 {
-	const char *focusfile = "/home/service/.deepfocus/focusfile";
-	const int fd = open(focusfile, O_RDWR | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR);
+	const int fd = open(FOCUSFILE, O_RDWR | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR);
 	
 	if (fd == -1)
 		sysError("open");
@@ -161,7 +159,7 @@ static int startTask(char *session)
 
 	epoch = time(timer);
 
-	if (sprintf(starttime, "%i", epoch) < sizeof(epoch))
+	if (sprintf(starttime, "%li", epoch) < sizeof(epoch))
 		sysError("sprintf() failed");
 
 	if (write(fd, "|", 1) != 1)
@@ -191,8 +189,7 @@ static int startTask(char *session)
 
 static int stopTask(void)
 {
-	const char *focusfile = "/home/service/.deepfocus/focusfile";
-	const int fd = open(focusfile, O_RDWR, S_IRUSR | S_IWUSR);
+	const int fd = open(FOCUSFILE, O_RDWR, S_IRUSR | S_IWUSR);
 
 	if (fd == -1)
 		sysError("open");
@@ -209,7 +206,7 @@ static int stopTask(void)
 	if (write(fd, stopstatus, 64) != 64)
 		sysError("write() failed");
 
-	if (sprintf(endtime, "%i", epoch) < sizeof(epoch))
+	if (sprintf(endtime, "%li", epoch) < sizeof(epoch))
 		sysError("sprintf() failed");
 
 	if (write(fd, "|", 1) != 1)
