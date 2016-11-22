@@ -35,6 +35,7 @@
 #include <fcntl.h>		// Provides open() function.
 #include <time.h>		// Provides time() function.
 #include <sys/stat.h>	// Provides fstat() function.
+#include <limits.h>		// PATH_MAX
 
 const bool START = true;
 const bool STOP = false;
@@ -64,5 +65,6 @@ int sessionStatus(int fd, char statusbuffer[]);
 static int isRunning(int fd);
 static int startTask(char *session);
 static int stopTask(void);
+static char FOCUSFILE[PATH_MAX];
 
 #endif
